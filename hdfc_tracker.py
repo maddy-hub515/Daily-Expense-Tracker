@@ -64,7 +64,7 @@ def parse_hdfc_transaction(body, subject):
     
     # 1. Extract Amount (Handles formats like 1,000.00 or 500)
     # Looks for "INR 1,250.00 has been debited" or "Rs. 500 debited"
-    amount_pattern = r"(?:Rs\.?|INR)\s*([\d,]+\.?\d*)\s+has\s+been\s+debited"
+    amount_pattern = r"(?:Rs\.?|INR)\s*([\d,]+\.?\d*)\s+(?:is\s+debited|has\s+been\s+debited)"
     amount_match = re.search(amount_pattern, body, re.IGNORECASE)
     
     if amount_match:
@@ -75,7 +75,7 @@ def parse_hdfc_transaction(body, subject):
 
     # 2. Extract Merchant/Description
     # HDFC usually says "at merchant <NAME>" or "towards payment to <NAME>"
-    merchant_pattern = r"(?:to VPA\s+\S+\s+|at merchant\s+|towards\s+payment\s+to\s+|favour of\s+)(.+?)\s+(?:on|at|for|\.|\n)"
+    merchant_pattern = r"(?:towards\s+VPA\s+\S+\s+\((.*?)\)|at merchant\s+(.*?)\s|favour of\s+(.*?))(?:\s+on|\s+at|\.|\n)"
     merchant_match = re.search(merchant_pattern, body, re.IGNORECASE)
     
     if merchant_match:
@@ -132,6 +132,7 @@ def fetch_today_transactions(mail):
     tomorrow_date = (today + timedelta(days=1)).strftime("%d-%b-%Y")
     search_query = f'(SINCE "{search_date}" BEFORE "{tomorrow_date}")'
     print(f"🔍 Searching emails SINCE: {search_date} BEFORE: {tomorrow_date}")
+    print(search_query)
     
     status, messages = mail.search(None, search_query)
     
